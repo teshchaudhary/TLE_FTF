@@ -65,25 +65,53 @@ Disaster Monitor is a **real-time disaster tracking system** built with **FastAP
 ## **Project Structure**
 
 ```
-disaster_monitor/
-│
-├── backend/
-│   ├── app/
-│   │   ├── main.py            # FastAPI entrypoint
-│   │   ├── routes/
-│   │   │   ├── disasters.py   # Disasters API endpoints
-│   │   │   └── alerts.py      # Alerts API endpoints
-│   │   └── utils/             # Helper functions (optional)
-│   └── scripts/
-│       ├── create_disasters_index.py
-│       ├── create_alerts_index.py
-│       └── run_alerts.py
-│
-├── frontend/
-│   └── app.py                 # Streamlit dashboard
-│
-├── requirements.txt           # Python dependencies
-└── README.md
+/disaster_monitor
+├── .env
+├── .git
+├── .gitignore
+├── README.md
+├── backend
+│   ├── app
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   ├── config.py
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   ├── routes
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   ├── alerts.py
+│   │   │   └── disasters.py
+│   │   └── services
+│   │       ├── __init__.py
+│   │       ├── __pycache__
+│   │       ├── alerts.py
+│   │       ├── elastic.py
+│   │       ├── fetch_news.py
+│   │       └── nlp.py
+│   └── requirements.txt
+├── data
+│   ├── disasters.parquet
+│   └── logs
+│       └── pipeline.log
+├── directory_st.py
+├── docker-compose.yml
+├── elastic
+│   ├── kibana
+│   └── mappings
+│       ├── alerts.json
+│       └── disasters.json
+├── frontend
+│   ├── app.py
+│   ├── components
+│   │   ├── filters.py
+│   │   ├── map.py
+│   │   └── timeline.py
+│   └── requirements.txt
+└── scripts
+    ├── create_alerts_index.py
+    ├── fetch_and_index.py
+    └── run_alerts.py
 ```
 
 ---
@@ -172,16 +200,5 @@ streamlit run app.py
 * Latest alerts are displayed in a scrolling marquee.
 * Map is interactive: click pins to view details and navigate to source links.
 * Timeline shows counts of disasters over time grouped by severity.
-
----
-
-## **To-Do / Next Steps**
-
-* Rotate multiple alerts in marquee
-* Add sorting and pagination for tables
-* Enhance map interactivity (hover info, cluster markers)
-* Integrate disaster `content` in table and tooltips
-* Unit tests for APIs and scripts
-* Dockerize backend and frontend for deployment
 
 ---
