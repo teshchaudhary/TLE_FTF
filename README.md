@@ -6,6 +6,25 @@ Disaster Monitor is a **real-time disaster tracking system** built with **FastAP
 
 ---
 
+---
+
+```bash
+git clone https://github.com/teshchaudhary/TLE_FTF.git
+```
+
+```bash
+docker compose up -d
+```
+
+```bash
+uvicorn backend.app.main:app --reload
+```
+
+```bash
+streamlit run frontend/app.py
+```
+
+
 ## **Features Implemented**
 
 ### **Backend (FastAPI + Elasticsearch)**
@@ -65,7 +84,7 @@ Disaster Monitor is a **real-time disaster tracking system** built with **FastAP
 ## **Project Structure**
 
 ```
-/disaster_monitor
+disaster_monitor
 ├── .env
 ├── .git
 ├── .gitignore
@@ -73,7 +92,6 @@ Disaster Monitor is a **real-time disaster tracking system** built with **FastAP
 ├── backend
 │   ├── app
 │   │   ├── __init__.py
-│   │   ├── __pycache__
 │   │   ├── config.py
 │   │   ├── main.py
 │   │   ├── models.py
@@ -104,10 +122,14 @@ Disaster Monitor is a **real-time disaster tracking system** built with **FastAP
 ├── frontend
 │   ├── app.py
 │   ├── components
+│   │   ├── alerts_marquee.py
+│   │   ├── disasters_table.py
 │   │   ├── filters.py
-│   │   ├── map.py
-│   │   └── timeline.py
-│   └── requirements.txt
+│   │   ├── legend.py
+│   │   ├── map_view.py
+│   │   └── timeline_chart.py
+│   ├── requirements.txt
+│   └── utils.py
 └── scripts
     ├── create_alerts_index.py
     ├── fetch_and_index.py
