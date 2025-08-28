@@ -1,0 +1,12 @@
+{
+  "mappings": {
+    "properties": {
+      "id": { "type": "keyword" },
+      "type": { "type": "keyword" },              
+      "severity": { "type": "keyword" },          
+      "description": { "type": "text" },          
+      "location": { "type": "geo_point" },        
+      "created_at": { "type": "date" }            
+    }
+  }
+}
