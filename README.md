@@ -1,4 +1,4 @@
-Here’s a refined version of your README with improved readability and structure:
+Here’s the updated README with the Docker-based Elasticsearch setup incorporated and the manual steps removed:
 
 ---
 
@@ -128,10 +128,10 @@ disaster_monitor
 ### **Prerequisites**
 
 * Python 3.13+
-* Elasticsearch 8.x (local or remote)
 * Streamlit
 * FastAPI
 * Uvicorn
+* Docker (for Elasticsearch and Kibana)
 
 **Python Dependencies**:
 
@@ -141,18 +141,30 @@ pip install -r requirements.txt
 
 ---
 
-### **1. Elasticsearch Setup**
+### **1. Run with Docker**
 
-1. Install Elasticsearch and start it locally:
+To set up **Elasticsearch** and **Kibana** automatically using Docker, follow these steps:
+
+1. **Start Elasticsearch and Kibana with Docker**:
+
+   If you don't already have Docker and Docker Compose installed, please install them from [Docker's official website](https://www.docker.com/products/docker-desktop).
+
+   Then, in the root of your project directory, run the following command:
 
    ```bash
-   wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.10.0-linux-x86_64.tar.gz
-   tar -xzf elasticsearch-8.10.0-linux-x86_64.tar.gz
-   cd elasticsearch-8.10.0
-   ./bin/elasticsearch
+   docker-compose up
    ```
 
-2. Create the disaster and alert indices:
+   This will:
+
+   * Pull the `elasticsearch` and `kibana` Docker images.
+   * Start both Elasticsearch and Kibana in separate containers.
+   * Elasticsearch will be available at `http://localhost:9200`.
+   * Kibana (a UI for Elasticsearch) will be available at `http://localhost:5601`.
+
+2. **Create the disaster and alert indices**:
+
+   Once Elasticsearch is up, you can create the necessary indices for disasters and alerts:
 
    ```bash
    python backend/scripts/create_disasters_index.py
@@ -191,11 +203,36 @@ Then open `http://localhost:8501` in your browser.
 
 ---
 
+## 🚀 Deployment with Docker
+
+**Disaster Monitor** uses **Docker Compose** to easily deploy **Elasticsearch** and **Kibana**.
+
+**Start Elasticsearch and Kibana** using Docker Compose:
+
+   ```bash
+   docker-compose up
+   ```
+
+This command will start both services, and you can access:
+
+* **Elasticsearch REST API** at `http://localhost:9200`
+* **Kibana UI** at `http://localhost:5601`
+
+---
+
 ## 📚 Usage Notes
 
 * Filters allow you to select "All" for disaster types, severity, and date ranges.
 * Latest alerts are displayed in a dynamic, scrolling marquee.
 * The interactive map allows you to click disaster pins to view more details and navigate to external sources.
 * The timeline chart shows disaster counts over time, grouped by severity.
+
+---
+
+## 🔧 Additional Notes
+
+* **Environment Variables:** You can configure additional settings for both the backend and frontend by setting environment variables in the `.env` file.
+* **Local Development:** For local development, running Elasticsearch and Kibana with Docker eliminates the need for manual installation or configuration.
+* **Production Considerations:** In production, consider enabling security features in Elasticsearch and Kibana and adjusting JVM memory options (`ES_JAVA_OPTS`) for optimized performance.
 
 ---
