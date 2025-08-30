@@ -61,6 +61,8 @@ optree==0.17.0
 packaging==25.0
 pandas==2.3.2
 pillow==11.3.0
+praw==7.8.1
+prawcore==2.4.0
 protobuf==5.29.5
 pyarrow==21.0.0
 pydantic==2.11.7
@@ -101,9 +103,11 @@ triton==3.4.0
 typing-inspection==0.4.1
 typing_extensions==4.15.0
 tzdata==2025.2
+update-checker==0.18.0
 urllib3==2.5.0
 uvicorn==0.35.0
 watchdog==6.0.0
+websocket-client==1.8.0
 Werkzeug==3.1.3
 wheel==0.45.1
 wrapt==1.17.3

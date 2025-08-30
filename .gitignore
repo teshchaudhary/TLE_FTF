@@ -1,4 +1,5 @@
 .env
+env
 directory_st.py
 *.pyc
 *.parquet

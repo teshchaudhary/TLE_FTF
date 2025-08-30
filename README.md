@@ -136,6 +136,8 @@ disaster_monitor
 **Python Dependencies**:
 
 ```bash
+python3 -m venv env
+source env/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -152,7 +154,7 @@ To set up **Elasticsearch** and **Kibana** automatically using Docker, follow th
    Then, in the root of your project directory, run the following command:
 
    ```bash
-   docker-compose up
+   docker compose up
    ```
 
    This will:
