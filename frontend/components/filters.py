@@ -5,14 +5,10 @@ def show_filters():
     st.sidebar.header("🔎 Search Filters")
 
     q = st.sidebar.text_input("Keyword")
-
-    disaster_type_options = ["All", "earthquake", "flood", "cyclone", "wildfire", "tsunami"]
-    disaster_type = st.sidebar.selectbox("Disaster Type", disaster_type_options)
-
+    disaster_type = st.sidebar.selectbox("Disaster Type", ["All","earthquake","flood","cyclone","wildfire","tsunami"])
     severity_options = ["All", "low", "medium", "high"]
     disaster_severity = st.sidebar.selectbox("Disaster Severity", severity_options)
     alert_severity = st.sidebar.selectbox("Alert Severity", severity_options)
-
     location = st.sidebar.text_input("Location")
 
     all_dates = st.sidebar.checkbox("All Dates", value=True)
@@ -24,9 +20,19 @@ def show_filters():
 
     limit = st.sidebar.slider("Max Results", 10, 200, 50)
 
-    # Button to trigger ingestion
     if st.sidebar.button("⚡ Fetch Latest News"):
-        st.session_state["fetch_news"] = True
+        with st.spinner("Fetching and indexing..."):
+            import sys, os
+            sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "scripts"))
+            
+            import fetch_and_index
+            import reddit
+
+            # Pass limit=5 and query="disaster" when triggered from Streamlit
+            fetch_and_index.main(limit=5, query="disaster")
+            reddit.main(limit=5, query="disaster")
+
+        st.success("✅ Latest news & Reddit posts fetched!")
 
     return {
         "q": q,

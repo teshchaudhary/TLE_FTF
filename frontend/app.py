@@ -14,15 +14,15 @@ st.title("🌍 Disaster Monitor Dashboard")
 filter_params = filters.show_filters()
 
 # ----------------------
-# Auto-refresh Marquee every 10 seconds
+# Auto-refresh every 10 seconds
 # ----------------------
-st_autorefresh(interval=10000, key="alerts_marquee_refresh")
-marquee_placeholder = st.empty()
+st_autorefresh(interval=10000, key="auto_refresh")
 
+# ----------------------
+# Alerts Marquee
+# ----------------------
 alerts_data = fetch_alerts(API_URL, filter_params)
-with marquee_placeholder:
-    alerts_marquee.show_alerts_marquee(alerts_data)
-
+alerts_marquee.show_alerts_marquee(alerts_data)
 st.markdown("---")
 
 # ----------------------

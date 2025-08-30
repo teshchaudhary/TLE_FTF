@@ -33,9 +33,6 @@ SECONDARY_THRESHOLD = float(os.getenv("SECONDARY_THRESHOLD", 0.15))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", 16))
 PER_DISASTER_FETCH = int(os.getenv("PER_DISASTER_FETCH", 100))
 
-# -----------------------
-# Disaster Types & Synonyms
-# -----------------------
 DISASTER_TYPES = [
     "earthquake", "flood", "cyclone", "wildfire",
     "landslide", "volcano", "drought", "tsunami"
@@ -180,7 +177,7 @@ def parse_published_at(s: Optional[str]) -> datetime:
 # -----------------------
 # Fetch + enrich
 # -----------------------
-def fetch_for_query(query: str, page_size: int = 100) -> List[Dict]:
+def fetch_for_query(query: str = "disaster", page_size: int = 100) -> List[Dict]:
     url = "https://newsapi.org/v2/everything"
     params = {
         "q": f"{query} AND India",
@@ -289,7 +286,15 @@ def index_into_es(df: pd.DataFrame, es_client: Elasticsearch, index_name: str):
 # -----------------------
 # Main run
 # -----------------------
-def main():
+def main(limit: int = None, query: str = None):
+    """
+    Fetch & index news articles.
+    :param limit: max number of articles to fetch
+    :param query: search query
+    """
+    query = query or "disaster"
+    page_size = limit or PER_DISASTER_FETCH  # fallback to default if not provided
+
     all_new_records = []
     seen_urls = set()
     if os.path.exists(PARQUET_PATH):
@@ -300,24 +305,19 @@ def main():
         except Exception as e:
             logging.warning("Could not read existing parquet: %s", e)
 
-    for disaster in DISASTER_TYPES:
-        logging.info("Fetching up to %d articles for '%s'...", PER_DISASTER_FETCH, disaster)
-        raw = fetch_for_query(disaster, page_size=PER_DISASTER_FETCH)
-        new_raw = [a for a in raw if a.get("url") not in seen_urls]
-        if not new_raw:
-            logging.info("No new articles for %s", disaster)
-            continue
+    logging.info("Fetching up to %d articles for query '%s'...", page_size, query)
+    raw = fetch_for_query(query, page_size=page_size)
+    new_raw = [a for a in raw if a.get("url") not in seen_urls]
 
-        logging.info("Enriching %d articles...", len(new_raw))
-        df_new = enrich_articles(new_raw)
-        df_new = df_new.drop_duplicates(subset=["url"])
-        all_new_records.append(df_new)
-        seen_urls.update(df_new["url"].dropna().tolist())
-        time.sleep(1.0)
-
-    if not all_new_records:
-        logging.info("No new articles to process. Exiting.")
+    if not new_raw:
+        logging.info("No new articles found. Exiting.")
         return
+
+    logging.info("Enriching %d articles...", len(new_raw))
+    df_new = enrich_articles(new_raw)
+    df_new = df_new.drop_duplicates(subset=["url"])
+    all_new_records.append(df_new)
+    seen_urls.update(df_new["url"].dropna().tolist())
 
     new_df = pd.concat(all_new_records, ignore_index=True)
     logging.info("Total new enriched records: %d", new_df.shape[0])

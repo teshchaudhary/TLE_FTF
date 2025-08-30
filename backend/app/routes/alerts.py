@@ -7,15 +7,41 @@ ALERTS_INDEX = "alerts"
 
 @router.get("/alerts/search")
 def search_alerts(
+    q: str = Query(None, description="Keyword search"),
+    location: str = Query(None, description="Location filter"),
     severity: str = Query("All", description="Severity filter"),
     limit: int = Query(50, description="Max results")
 ):
     must_clauses = []
 
-    if severity != "All":
-        must_clauses.append({"match": {"severity": severity}})
+    # Keyword full-text search (in title + description fields for example)
+    if q:
+        must_clauses.append({
+            "multi_match": {
+                "query": q,
+                "fields": ["title", "description", "content"]
+            }
+        })
 
+    # Strict location filter (exact country/city match instead of substring)
+    if location and location != "All":
+        must_clauses.append({
+            "term": {  # term ensures exact match (case-sensitive on keyword fields)
+                "location.keyword": location
+            }
+        })
+
+    # Severity filter
+    if severity != "All":
+        must_clauses.append({
+            "term": {
+                "severity.keyword": severity
+            }
+        })
+
+    # Final query
     query = {"query": {"bool": {"must": must_clauses}}} if must_clauses else {"query": {"match_all": {}}}
+
     res = es.search(index=ALERTS_INDEX, body=query, size=limit)
     alerts = [hit["_source"] for hit in res["hits"]["hits"]]
     return alerts

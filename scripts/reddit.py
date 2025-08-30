@@ -4,6 +4,8 @@ import time
 import logging
 from datetime import datetime
 from typing import List, Dict
+from dotenv import load_dotenv
+load_dotenv()
 
 import pandas as pd
 import praw
@@ -16,8 +18,11 @@ from geopy.geocoders import Nominatim
 # -----------------------
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-ES_HOST = os.getenv("ES_HOST", "http://localhost:9200")
-ES_INDEX = os.getenv("ES_INDEX", "disasters")
+ES_HOST = os.getenv("ES_HOST")
+ES_INDEX = os.getenv("ES_INDEX")
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+
 BATCH_SIZE = 16
 CLASSIFY_THRESHOLD = 0.25
 SECONDARY_THRESHOLD = 0.15
@@ -38,8 +43,8 @@ SYNONYMS = {
 # Initialize clients
 # -----------------------
 reddit = praw.Reddit(
-    client_id="prVK0r2hgGZ5ARz3FCopqQ",
-    client_secret="fslSyNs3qLQkJZs5uyAYZcKjSLkZhg",
+    client_id=CLIENT_ID,
+    client_secret=CLIENT_SECRET,
     user_agent="reddit_to_es/0.1"
 )
 
@@ -101,9 +106,12 @@ def compute_severity(text: str) -> str:
 # -----------------------
 # Fetch + Enrich Reddit
 # -----------------------
-def fetch_reddit_posts(subreddit_name: str, limit: int=100):
+def fetch_reddit_posts(subreddit_name: str, limit: int=100, query: str="disaster"):
+    """
+    Fetch latest posts matching the query.
+    """
     posts = []
-    for post in reddit.subreddit(subreddit_name).new(limit=limit):
+    for post in reddit.subreddit(subreddit_name).search(query=query, sort="new", limit=limit):
         posts.append({
             "title": post.title,
             "description": post.selftext[:200],
@@ -117,6 +125,7 @@ def fetch_reddit_posts(subreddit_name: str, limit: int=100):
 def enrich_reddit_posts(raw_posts: List[Dict]) -> pd.DataFrame:
     records = []
     for p in raw_posts:
+        loc = extract_location(p["title"], p["content"])
         rec = {
             "title": p["title"],
             "description": p["description"],
@@ -125,9 +134,9 @@ def enrich_reddit_posts(raw_posts: List[Dict]) -> pd.DataFrame:
             "source": "reddit",
             "publishedAt": p["publishedAt"],
             "disaster_type": synonym_keyword_fallback(p["title"]+" "+p["content"]),
-            "location": extract_location(p["title"], p["content"]),
+            "location": loc,
             "severity": compute_severity(p["title"]+" "+p["content"]),
-            "geo": get_geo(extract_location(p["title"], p["content"]))
+            "geo": get_geo(loc)
         }
         records.append(rec)
     return pd.DataFrame(records)
@@ -145,15 +154,20 @@ def index_into_es(df: pd.DataFrame, es_client: Elasticsearch, index_name: str):
         }
         for _,r in df.iterrows()
     ]
-    helpers.bulk(es_client, actions)
-    logging.info("Indexed %d documents into '%s'.", len(actions), index_name)
+    if actions:
+        helpers.bulk(es_client, actions)
+        logging.info("Indexed %d documents into '%s'.", len(actions), index_name)
 
 # -----------------------
 # Main Runner
 # -----------------------
-def main():
+def main(limit: int=100, query: str="disaster"):
+    """
+    :param limit: number of latest posts to fetch
+    :param query: search query string
+    """
     logging.info("Fetching Reddit posts...")
-    raw_posts = fetch_reddit_posts("naturaldisasters", limit=1000)
+    raw_posts = fetch_reddit_posts("naturaldisasters", limit=limit, query=query)
     if not raw_posts:
         logging.info("No Reddit posts found.")
         return
